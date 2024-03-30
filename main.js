@@ -1,5 +1,5 @@
 const canvas = document.querySelector('#game');
-const mappingFoot = document.querySelector('.header__foot');
+const mappingFood = document.querySelector('.header__food');
 const mappingRecord = document.querySelector('.header__record');
 const mappingAttemps = document.querySelector('.header__attemps');
 const gameOverMessage = document.createElement('div');
@@ -21,12 +21,12 @@ if (canvas.getContext) {
 
     let mapWidth = canvas.width;
     let mapHeight = canvas.height;
-    let defaultSpeed = 8; // fps (default)
-    let speed = 10; // fps (speed)
+    let defaultSpeed = 5; // fps (default)
+    let speed = 5; // fps (speed)
     let interval = 1000 / speed; // frame time
     let gamePaused = false; 
 
-    function speedSnake(speed) {
+    function speedSnake(speed) {  //This function updates the snake's movement speed based on the provided speed parameter.
         interval = 1000 / speed;
     }
 
@@ -40,8 +40,8 @@ if (canvas.getContext) {
         moveY: 0,
         fill: '#56cefa',
         secFill: '#2092bb',
-        foot: 0,
-        recordFoot: 0,
+        food: 0,
+        recordFood: 0,
         body: [],
         size: 3,
         defaultSize: 3,
@@ -50,19 +50,21 @@ if (canvas.getContext) {
         activeKey: true,
     };
 
-    let foot = {
+    let food = {
         x: 0,
         y: 0,
         fill: '#fa5656',
     };
-
+    /**Checks for the existence of a record entry in the browser's local storage. If the entry exists, it assigns it to the snake.
+    recordFood variable and displays it on the page. 
+    If there is no entry, it creates one with an initial value of 0.**/
     function localStor() {
         if (localStorage.getItem('record')) {
-            snake.recordFoot = localStorage.getItem('record');
-            mappingRecord.innerHTML = snake.recordFoot;
-            console.log(snake.recordFoot);
+            snake.recordFood = localStorage.getItem('record');
+            mappingRecord.innerHTML = snake.recordFood;
+            console.log(snake.recordFood);
         } else {
-            localStorage.setItem('record', snake.recordFoot);
+            localStorage.setItem('record', snake.recordFood);
         }
     }
 
@@ -97,7 +99,7 @@ if (canvas.getContext) {
         if (!gamePaused) {
             ctx.clearRect(0, 0, mapWidth, mapHeight);
             drawSnake();
-            drawFoot();
+            drawFood();
             setTimeout(animate, interval);
         } else {
             setTimeout(animate, 100);
@@ -117,13 +119,13 @@ if (canvas.getContext) {
             snake.body.pop();
         }
 
-        if (snake.body[0].x === foot.x && snake.body[0].y === foot.y) {
+        if (snake.body[0].x === food.x && snake.body[0].y === food.y) {
             snake.size++;
-            snake.foot++;
+            snake.food++;
             upComplexitySnake();
-            refreshMeppingFoot();
-            refreshRecordFoot();
-            positionFoot();
+            refreshMeppingFood();
+            refreshRecordFood();
+            positionFood();
         }
 
         snake.activeKey = true;
@@ -141,7 +143,7 @@ if (canvas.getContext) {
             ctx.fillRect(el.x, el.y, snake.step, snake.step)
         });
     }
-
+    /* Checks for collision between the snake's head and its own tail. If a collision occurs, the game is paused and a game-over message is displayed**/
     function crachedIntoTheTail(el, index) {
         if (snake.body.length > snake.defaultSize && snake.body[0].x === el.x && snake.body[0].y === el.y && index !== 0) {
             gamePaused = true;
@@ -154,7 +156,7 @@ if (canvas.getContext) {
         restartGame();
         gamePaused = true;
     }
-
+//Checks if the snake goes beyond the boundaries of the game canvas and, if necessary, moves it to the opposite side of the canvas.
     function ambit() {
         if (snake.x + snake.moveX >= mapWidth) snake.x = -snake.step
         if (snake.x + snake.moveX < 0) snake.x = mapWidth
@@ -162,12 +164,12 @@ if (canvas.getContext) {
         if (snake.y + snake.moveY < 0) snake.y = mapHeight
     }
 
-    function drawFoot() {
-        ctx.fillStyle = foot.fill;
-        ctx.fillRect(foot.x, foot.y, snake.w, snake.h);
+    function drawFood() {
+        ctx.fillStyle = food.fill;
+        ctx.fillRect(food.x, food.y, snake.w, snake.h);
     }
 
-    function positionFoot() {
+    function positionFood() {
         let x = randomX();
         let y = randomY();
         let overlapping = false;
@@ -179,10 +181,10 @@ if (canvas.getContext) {
         });
 
         if (overlapping) {
-            positionFoot();
+            positionFood();
         } else {
-            foot.x = x;
-            foot.y = y;
+            food.x = x;
+            food.y = y;
         }
     }
 
@@ -195,23 +197,23 @@ if (canvas.getContext) {
     }
 
     function upComplexitySnake() {
-        speedSnake(defaultSpeed + (snake.foot / 20))
+        speedSnake(defaultSpeed + (snake.food / 5))
     }
 
-    function refreshMeppingFoot() {
-        mappingFoot.innerHTML = snake.foot;
+    function refreshMeppingFood() {
+        mappingFood.innerHTML = snake.food;
     }
-
-    function refreshRecordFoot() {
-        if (snake.recordFoot < snake.foot) {
-            snake.recordFoot = snake.foot;
-            mappingRecord.innerHTML = snake.recordFoot;
-            localStorage.setItem('record', snake.recordFoot);
+//Updates the record number of eaten food and saves it to local storage.
+    function refreshRecordFood() {
+        if (snake.recordFood < snake.food) {
+            snake.recordFood = snake.food;
+            mappingRecord.innerHTML = snake.recordFood;
+            localStorage.setItem('record', snake.recordFood);
         }
-        mappingFoot.innerHTML = snake.foot;
+        mappingFood.innerHTML = snake.food;
     }
-
-    function refreshAttempsFoot() {
+//Updates the player's attempts count.
+    function refreshAttempsFood() {
         if (snake.attemps < 100) snake.attemps++;
         else snake.attemps = 0;
         mappingAttemps.innerHTML = snake.attemps;
@@ -220,10 +222,10 @@ if (canvas.getContext) {
     function restartGame() {
         gamePaused = false; 
         snake.size = snake.defaultSize;
-        snake.foot = 0;
-        refreshMeppingFoot();
+        snake.food = 0;
+        refreshMeppingFood();
         speedSnake(defaultSpeed);
-        refreshAttempsFoot();
+        refreshAttempsFood();
 
         snake.body = [];
         snake.body.push({ x: mapWidth / 2, y: mapHeight / 2 });
